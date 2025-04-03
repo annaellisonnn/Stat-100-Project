@@ -1,0 +1,57 @@
+---
+title: "Impact of Media Forms on Voting Preference and Behavior"
+author: "Anna Ellison and William Lewis"
+format: revealjs
+---
+
+## Introduction
+
+- Our project aims to investigate the impact of various media forms on voting turnout and behaviors.
+- We plan to use publicly available datasets to examine correlations between different sources of media consumption and political preferences and behavior. 
+- The primary goal of our project is to find statiscally significant data to help provide an understanding of media influence and democratic participation. 
+
+```{r}
+#| include: FALSE
+library(tidyverse)
+library(janitor)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+#| include: FALSE
+anesspecialstudy <- read.csv("anes_specialstudy_2020-2022_socialmedia_csv_20230705.csv") 
+```
+
+```{r}
+#| include: FALSE
+newsonline <- anesspecialstudy |>
+  select(profile_newsonline, profile_newsmobile, trustfox, trustfb, trusttw, trustmsnbc)
+
+newsonline <- newsonline %>%
+  mutate(newsyesterday = case_when(profile_newsonline == 1 ~ "Yes", profile_newsonline == 2 ~ "No")) |>
+  mutate(foxtrust = case_when(trustfox == 1 ~ "Not at all", trustfox == 2 ~ "A little", trustfox == 3 ~ "A moderate amount", trustfox == 4 ~ "A lot", trustfox == 5 ~ "A great deal")) |>
+  mutate(msnbctrust = case_when(trustmsnbc == 1 ~ "Not at all", trustmsnbc == 2 ~ "A little", trustmsnbc == 3 ~ "A moderate amount", trustmsnbc == 4 ~ "A lot", trustmsnbc == 5 ~ "A great deal")) |>
+  mutate(fbtrust = case_when(trustfb == 1 ~ "Not at all", trustfb == 2 ~ "A little", trustfb == 3 ~ "A moderate amount", trustfb == 4 ~ "A lot", trustfb == 5 ~ "A great deal"))
+```
+
+```{r}
+#| include: FALSE
+# The ANES (American National Elections Study) 2020-2022 Social Media Study is a three-wave panel survey conducted on the Internet to provide data about voting and public opinion in the 2020 and 2022 elections. Over 5500 people were interviewed for this survey. 
+```
+
+## Use of Online News
+```{r}
+frequency_table <- table(newsonline$newsyesterday)
+
+barplot(frequency_table, main = "Did you get any news online yesterday?", xlab = "", ylab = "Frequency")
+```
+
+## Trust in Media Forms
+```{r}
+fbtrustfrequency <- table(newsonline$fbtrust)
+
+barplot(fbtrustfrequency, main = "How trustworthy do you believe Facebook to be?", xlab = "", ylab = "Frequency")
+```
+
