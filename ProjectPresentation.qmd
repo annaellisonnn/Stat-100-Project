@@ -6,9 +6,9 @@ format: revealjs
 
 ## Introduction
 
-- Our project aims to investigate the impact of various media forms on voting turnout and behaviors.
-- We plan to use publicly available datasets to examine correlations between different sources of media consumption and political preferences and behavior. 
-- The primary goal of our project is to find statiscally significant data to help provide an understanding of media influence and democratic participation. 
+-   Our project aims to investigate the impact of various media forms on voting turnout and behaviors.
+-   We plan to use publicly available datasets to examine correlations between different sources of media consumption and political preferences and behavior.
+-   The primary goal of our project is to find statiscally significant data to help provide an understanding of media influence and democratic participation.
 
 ```{r}
 #| include: FALSE
@@ -42,6 +42,7 @@ newsonline <- newsonline %>%
 ```
 
 ## Use of Online News
+
 ```{r}
 frequency_table <- table(newsonline$newsyesterday)
 
@@ -49,9 +50,15 @@ barplot(frequency_table, main = "Did you get any news online yesterday?", xlab =
 ```
 
 ## Trust in Media Forms
+
 ```{r}
 fbtrustfrequency <- table(newsonline$fbtrust)
 
 barplot(fbtrustfrequency, main = "How trustworthy do you believe Facebook to be?", xlab = "", ylab = "Frequency")
+```
+
+```{r}
+tweetvolume <- read.csv("tweet_volume_data_refined.csv")
+
 ```
 
