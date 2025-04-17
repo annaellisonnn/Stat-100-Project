@@ -1,0 +1,78 @@
+---
+title: "How Political Media Exposure Influences Voter Turnout Across Age Groups in US Elections"
+author: Anna Ellison and William Lewis
+format: revealjs
+editor: visual
+editor_options: 
+  chunk_output_type: inline
+---
+
+## Introduction
+
+Topic: How Political Media Exposure Influences Voter Turnout Across Age Groups in US Elections
+
+- Our project aims to investigate how the volume and type of political media, especially social media posts and advertisements, correlate with voter turnout across different age demographics
+- We specifically plan to examine the rise in political advertisements and social media posts surrounding election dates, and how this can ultimately impact voter turnout and appeal to different generations of media users
+
+```{r}
+#| include: FALSE
+library(tidyverse)
+library(janitor)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(usmap)
+library(scales)
+library(tinytable)
+```
+
+```{r}
+tweetvolume <- read.csv("tweet_volume_data_refined.csv")
+tweetvolume$date <- as.Date(tweetvolume$date)
+```
+
+## Data from X
+```{r}
+ggplot(tweetvolume, aes(x = date, y = tweet_count)) +
+  geom_area(fill = "#B3CDE0", alpha = 0.4) +
+  geom_line(color = "005B96", linewidth = 1.5) +
+  geom_point(color = "#03396C", size = 2) +
+  scale_x_date(date_labels = waiver(), date_breaks = waiver()) +
+  scale_y_continuous(labels = comma) +
+  labs(
+      title = "Social Media Surge: Tweets Leading to the 2024 Election",
+      subtitle = "Tweet volume increases as election day approaches",
+      x = "Date",
+      y = "Number of Tweets",
+      caption = "Source: X"
+  ) +
+theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 13, color = "gray40"),
+    axis.title = element_text(face = "bold"),
+    axix.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+```{r}
+geo_spend <- read.csv("google-political-ads-advertiser-geo-spend.csv") 
+
+statespending <- geo_spend |>
+  filter(Country == "US") |>
+  rename(state = Country_Subdivision_Primary) |>
+  group_by(state) |>
+  filter(state != "AS", state != "GU", state != "MP", state != "DC", state != "PR", state != "VI" ,state != "") |>
+  summarize(Total = sum(Spend_USD)/1000000)
+
+tt(statespending,
+   caption = "Money Spent on Political Advertisement Per State")
+
+plot_usmap(data = statespending, values = "Total", regions = "states") +
+  scale_fill_continuous( low = "light yellow", high = "dark red", name = "Spending (in millions)") +
+  theme(legend.position = "right") +
+  labs(title = "Heat Map of Political Ad Spending per State in the U.S.")
+```
+
