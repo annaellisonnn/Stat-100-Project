@@ -62,64 +62,86 @@ theme_minimal(base_size = 14) +
 ```{r}
 voterturnout2016 <- read.csv("voterturnout2016.csv") |>
   group_by(state) |>
-  rename("Voter Turnout Rate 2016" = Share.of.Pop.Ages.18...24)
+  rename('Voter Turnout Rate 2016 (18-24)' = Share.of.Pop.Ages.18...24) |>
+  rename('Voter Turnout Rate 2016 (45-64)' = Share.of.Pop.Ages.45...64)
 
 youngvoters2016 <- voterturnout2016 |>
-  select('Voter Turnout Rate 2016') |>
-  filter(`Voter Turnout Rate 2016` != "NSD", `Voter Turnout Rate 2016` != 0)
+  select('Voter Turnout Rate 2016 (18-24)') 
 
-youngvoters2016$`Voter Turnout Rate 2016` <- as.numeric(youngvoters2016$`Voter Turnout Rate 2016`)
+youngvoters2016$`Voter Turnout Rate 2016 (18-24)` <- as.numeric(youngvoters2016$`Voter Turnout Rate 2016 (18-24)`)
 
-youngvoters2016$`Voter Turnout Rate 2016` <- youngvoters2016$`Voter Turnout Rate 2016` * 100
+youngvoters2016$`Voter Turnout Rate 2016 (18-24)` <- youngvoters2016$`Voter Turnout Rate 2016 (18-24)` * 100
+
+oldervoters2016 <- voterturnout2016 |>
+  select('Voter Turnout Rate 2016 (45-64)')
+
+oldervoters2016$'Voter Turnout Rate 2016 (45-64)' <- as.numeric(oldervoters2016$'Voter Turnout Rate 2016 (45-64)')
+
+oldervoters2016$'Voter Turnout Rate 2016 (45-64)' <- oldervoters2016$'Voter Turnout Rate 2016 (45-64)' * 100
 ```
 
 ## Voter Turnout 2016 Heat Map
 ```{r}
-plot_usmap(data = youngvoters2016, values = "Voter Turnout Rate 2016", regions = "states") +
-  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(20,75.3)) +
+plot_usmap(data = youngvoters2016, values = "Voter Turnout Rate 2016 (18-24)", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(20,100)) +
   labs(title = "Voter Turnout Rate (Ages 18-24) by State in 2016") +
   theme(plot.title = element_text(size = 18, face = "bold"),
     legend.background = element_rect(fill = "transparent", color = NA),
       legend.position = c(0,0.05))
 ```
 
+
 ```{r}
 voterturnout2020 <- read.csv("voter_turnout.csv") |>
     group_by(State) |>
   rename(state = State) |>
-  rename("Voter Turnout Rate" = Share.of.Pop..18...24)
+  rename("Voter Turnout Rate 18-24" = Share.of.Pop..18...24) |>
+  rename("Voter Turnout Rate 45-64" = Share.of.Pop..45...64)
 
 youngvoters2020 <- voterturnout2020 |>
-  select(`Voter Turnout Rate`) |>
-  filter(`Voter Turnout Rate` != "NSD", `Voter Turnout Rate` != 0)
+  select(`Voter Turnout Rate 18-24`)
 
-youngvoters2020$`Voter Turnout Rate` <- as.numeric(youngvoters2020$`Voter Turnout Rate`)
+youngvoters2020$`Voter Turnout Rate 18-24` <- as.numeric(youngvoters2020$`Voter Turnout Rate 18-24`)
 
-youngvoters2020$`Voter Turnout Rate` <- youngvoters2020$`Voter Turnout Rate` * 100
+youngvoters2020$`Voter Turnout Rate 18-24` <- youngvoters2020$`Voter Turnout Rate 18-24` * 100
+
+oldervoters2020 <- voterturnout2020 |>
+  select('Voter Turnout Rate 45-64')
+
+oldervoters2020$'Voter Turnout Rate 45-64' <- as.numeric(oldervoters2020$'Voter Turnout Rate 45-64')
+
+oldervoters2020$'Voter Turnout Rate 45-64' <- oldervoters2020$'Voter Turnout Rate 45-64' * 100
 
 ```
 
 ## Voter Turnout 2020 Heat Map
 ```{r echo = FALSE}
-plot_usmap(data = youngvoters2020, values = "Voter Turnout Rate", regions = "states") +
-  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(20,75.3)) +
+plot_usmap(data = youngvoters2020, values = "Voter Turnout Rate 18-24", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(20,100)) +
   labs(title = "Voter Turnout Rate (Ages 18-24) by State in 2020") +
   theme(plot.title = element_text(size = 18, face = "bold"), legend.background = element_rect(fill = "transparent", color = NA),
       legend.position = c(0,0.05))
 ```
 
-## Top 10 States With Highest Voter Turnout Rates (2020) Ages 18 - 24
-```{r echo = FALSE}
-top10youngstates2020 <- youngvoters2020 |>
-  arrange(desc(`Voter Turnout Rate`)) |>
-  head(10) |>
-  rename(State = "state")
+## Older Voter Turnout 2016 Heat Map
+```{r}
+plot_usmap(data = oldervoters2016, values = 'Voter Turnout Rate 2016 (45-64)', regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(52,100)) +
+  labs(title = "Voter Turnout Rate (Ages 45-64) by State in 2016") +
+  theme(plot.title = element_text(size = 18, face = "bold"),
+    legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position = c(0,0.05))
 ```
 
-```{r}
-tt(top10youngstates2020) |>
-  style_tt(fontsize = 0.72)
+## Older Voter Turnout 2020 Heat Map
+```{r echo = FALSE}
+plot_usmap(data = oldervoters2020, values = "Voter Turnout Rate 45-64", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(52,100)) +
+  labs(title = "Voter Turnout Rate (Ages 45-64) by State in 2020") +
+  theme(plot.title = element_text(size = 18, face = "bold"), legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position = c(0,0.05))
 ```
+
 
 ```{r}
 geo_spend <- read.csv("google-political-ads-advertiser-geo-spend.csv") 
@@ -132,22 +154,72 @@ statespending <- geo_spend |>
   summarize(Total = sum(Spend_USD)/1000000)
 ```
 
-## Spending Heat Map
-```{r echo = FALSE}
+```{r}
+statespendingpercapita <- geo_spend |>
+  filter(Country == "US") |>
+  rename(state = Country_Subdivision_Primary) |>
+  group_by(state) |>
+  filter(state != "AS", state != "GU", state != "MP", state != "DC", state != "PR", state != "VI" ,state != "") |>
+  select("state", "Spend_USD") |>
+  summarize(Total = sum(Spend_USD))
+```
+
+```{r}
+statepopulations <- read.csv("CENSUSpopulationdata.csv") |>
+  select("NAME", "POPESTIMATE2024") |>
+  rename(state = NAME) |>
+  filter(state != "United States", state != "Northeast Region", state != "New England", state != "Middle Atlantic", state != "Midwest Region", state != "East North Central", state != "West North Central", state != "South Region", state != "South Atlantic", state != "East South Central", state != "West South Central", state != "West Region", state != "Mountain", state != "Pacific", state != "Puerto Rico")
+
+statepopulations <- statepopulations |>
+  mutate(state = state.abb[match(state, state.name)])
+
+mergedspendingpercapita <- merge(statespendingpercapita, statepopulations, by = "state")
+
+mergedspendingpercapita <- mergedspendingpercapita |>
+  mutate('Spending Per Capita' = Total/POPESTIMATE2024)
+```
+
+```{r include = FALSE}
 plot_usmap(data = statespending, values = "Total", regions = "states") +
   scale_fill_continuous( low = "light yellow", high = "dark red", name = "Spending (in millions)", limits = c(2,225)) +
   theme(legend.position = "right", plot.title = element_text(size = 20, face = "bold")) +
   labs(title = "Heat Map of Political Ad Spending (Google) per State")
 ```
 
-## Top 10 States With Highest Political Ad Spending on Google
+## Spending Per Capita Heat Map
+```{r}
+plot_usmap(data = mergedspendingpercapita, values = "Spending Per Capita", regions = "states") +
+  scale_fill_continuous( low = "lightblue", high = "darkblue", name = "Spending Per Capita", limits = c(1,25)) +
+  theme(legend.position = "right", plot.title = element_text(size = 20, face = "bold")) +
+  labs(title = "Per Capita Political Ad Spending (Google) per State")
+```
+
+## Top 10 States With Highest Political Ad Spending (Per Capita) on Google
 ```{r echo = FALSE}
-top10spendingstates <- statespending |>
-  arrange(desc(Total)) |>
-  head(10) |>
-  rename(State = "state")
+top10spendingstates <- mergedspendingpercapita |>
+  select(state, `Spending Per Capita`)|>
+  arrange(desc(`Spending Per Capita`)) |>
+  slice_head(n = 10) |>
+  rename(State = state)
   
 tt(top10spendingstates) |>
+  style_tt(fontsize = 0.72)
+```
+
+```{r}
+mergedoldervoters <- merge(oldervoters2016, oldervoters2020, by = "state") |>
+  mutate("Change in Voter Turnout Rate (45-64)" = `Voter Turnout Rate 45-64` - `Voter Turnout Rate 2016 (45-64)`)
+
+top10changeinoldervoter <- mergedoldervoters |>
+  select(state,"Change in Voter Turnout Rate (45-64)") |>
+  arrange(desc(`Change in Voter Turnout Rate (45-64)`)) |>
+  head(10) |>
+  rename("State" = state)
+```
+
+## Top 10 States With Highest Increase in Voter Turnout Rates 2016-2020
+```{r}
+tt(top10changeinoldervoter) |>
   style_tt(fontsize = 0.72)
 ```
 
@@ -157,6 +229,23 @@ facebookadlocations <- read.csv("facebookadlocations.csv") |>
   rename(Spending = "Amount.spent..USD.") |>
   filter(state != "American Samoa", state != "Guam", state != "Northern Mariana Islands", state != "Puerto Rico", state != "Unknown", state != "Virgin Islands (U.S.)") |>
   mutate(Spending = Spending/1000000 )
+```
+
+```{r}
+mergedyoungervoters <- merge(youngvoters2016, youngvoters2020, by = "state") |>
+  mutate("Change in Voter Turnout Rate (18-24)" = `Voter Turnout Rate 18-24` - `Voter Turnout Rate 2016 (18-24)`)
+
+top10changeinyoungervoter <- mergedyoungervoters |>
+  select(state,"Change in Voter Turnout Rate (18-24)") |>
+  arrange(desc(`Change in Voter Turnout Rate (18-24)`)) |>
+  head(10) |>
+  rename("State" = state)
+```
+
+## Top 10 States With Highest Increase in Voter Turnout Rates 2016-2020
+```{r}
+tt(top10changeinyoungervoter) |>
+  style_tt(fontsize = 0.72)
 ```
 
 ```{r include = FALSE}
