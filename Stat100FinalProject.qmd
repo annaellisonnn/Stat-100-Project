@@ -1,0 +1,289 @@
+---
+title: "How Political Media Exposure Influences Voter Turnout Across Age Groups in US Elections"
+author: Anna Ellison and William Lewis
+format: revealjs
+editor: visual
+editor_options: 
+  chunk_output_type: inline
+---
+
+## Introduction
+
+-   Our project aims to investigate how the volume and type of political media, especially advertisements and social media posts, correlate with voter turnout across different age demographics
+-   We specifically plan to examine changes in voter turnout rates among age groups over the 2016 and 2020 presidential elections and how those differences can be attributed to other factors such as the influence of political social media posts or higher political ad spending in swing states
+
+```{r}
+#| include: FALSE
+library(tidyverse)
+library(janitor)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(usmap)
+library(scales)
+library(tinytable)
+library(maps)
+library(gt)
+library(RColorBrewer)
+```
+
+```{r}
+voterturnout2016 <- read.csv("voterturnout2016.csv") |>
+  group_by(state) |>
+  rename('Voter Turnout Rate 2016 (18-24)' = Share.of.Pop.Ages.18...24) |>
+  rename('Voter Turnout Rate 2016 (45-64)' = Share.of.Pop.Ages.45...64)
+
+youngvoters2016 <- voterturnout2016 |>
+  select('Voter Turnout Rate 2016 (18-24)') 
+
+youngvoters2016$`Voter Turnout Rate 2016 (18-24)` <- as.numeric(youngvoters2016$`Voter Turnout Rate 2016 (18-24)`)
+
+youngvoters2016$`Voter Turnout Rate 2016 (18-24)` <- youngvoters2016$`Voter Turnout Rate 2016 (18-24)` * 100
+
+oldervoters2016 <- voterturnout2016 |>
+  select('Voter Turnout Rate 2016 (45-64)')
+
+oldervoters2016$'Voter Turnout Rate 2016 (45-64)' <- as.numeric(oldervoters2016$'Voter Turnout Rate 2016 (45-64)')
+
+oldervoters2016$'Voter Turnout Rate 2016 (45-64)' <- oldervoters2016$'Voter Turnout Rate 2016 (45-64)' * 100
+```
+
+## Younger Voter Turnout 2016 
+
+```{r}
+plot_usmap(data = youngvoters2016, values = "Voter Turnout Rate 2016 (18-24)", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(20,100)) +
+  labs(title = "Voter Turnout Rate (Ages 18-24) by State in 2016") +
+  theme(plot.title = element_text(size = 18, face = "bold"),
+    legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position = c(0,0.05))
+```
+
+```{r}
+voterturnout2020 <- read.csv("voter_turnout.csv") |>
+    group_by(State) |>
+  rename(state = State) |>
+  rename("Voter Turnout Rate 18-24" = Share.of.Pop..18...24) |>
+  rename("Voter Turnout Rate 45-64" = Share.of.Pop..45...64)
+
+youngvoters2020 <- voterturnout2020 |>
+  select(`Voter Turnout Rate 18-24`)
+
+youngvoters2020$`Voter Turnout Rate 18-24` <- as.numeric(youngvoters2020$`Voter Turnout Rate 18-24`)
+
+youngvoters2020$`Voter Turnout Rate 18-24` <- youngvoters2020$`Voter Turnout Rate 18-24` * 100
+
+oldervoters2020 <- voterturnout2020 |>
+  select('Voter Turnout Rate 45-64')
+
+oldervoters2020$'Voter Turnout Rate 45-64' <- as.numeric(oldervoters2020$'Voter Turnout Rate 45-64')
+
+oldervoters2020$'Voter Turnout Rate 45-64' <- oldervoters2020$'Voter Turnout Rate 45-64' * 100
+
+```
+
+## Younger Voter Turnout 2020
+
+```{r echo = FALSE}
+plot_usmap(data = youngvoters2020, values = "Voter Turnout Rate 18-24", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(20,100)) +
+  labs(title = "Voter Turnout Rate (Ages 18-24) by State in 2020") +
+  theme(plot.title = element_text(size = 18, face = "bold"), legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position = c(0,0.05))
+```
+
+```{r}
+mergedyoungervoters <- merge(youngvoters2016, youngvoters2020, by = "state") |>
+  mutate("Change in Voter Turnout Rate (18-24)" = `Voter Turnout Rate 18-24` - `Voter Turnout Rate 2016 (18-24)`)
+
+top10changeinyoungervoter <- mergedyoungervoters |>
+  select(state,"Change in Voter Turnout Rate (18-24)") |>
+  arrange(desc(`Change in Voter Turnout Rate (18-24)`)) |>
+  head(10) |>
+  rename("State" = state)
+```
+
+## Top 10 States With Highest Increase in Voter Turnout Rates 2016-2020
+
+```{r}
+tt(top10changeinyoungervoter) |>
+  style_tt(fontsize = 0.72)
+```
+
+```{r}
+tweetvolume <- read.csv("tweet_volume_data_refined.csv")
+tweetvolume$date <- as.Date(tweetvolume$date)
+```
+
+## Data from X
+
+```{r}
+ggplot(tweetvolume, aes(x = date, y = tweet_count)) +
+  geom_area(fill = "#B3CDE0", alpha = 0.4) +
+  geom_line(color = "005B96", linewidth = 1.5) +
+  geom_point(color = "#03396C", size = 2) +
+  scale_x_date(date_labels = waiver(), date_breaks = waiver()) +
+  scale_y_continuous(labels = comma) +
+  labs(
+      title = "Social Media Surge: Political Tweets Leading to the 2024 Election",
+      subtitle = "Poltical Tweet volume increases as election day approaches",
+      x = "Date",
+      y = "Number of Tweets",
+      caption = "Source: X"
+  ) +
+theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 13, color = "gray40"),
+    axis.title = element_text(face = "bold"),
+    axix.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+## Older Voter Turnout 2016
+
+```{r}
+plot_usmap(data = oldervoters2016, values = 'Voter Turnout Rate 2016 (45-64)', regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(52,100)) +
+  labs(title = "Voter Turnout Rate (Ages 45-64) by State in 2016") +
+  theme(plot.title = element_text(size = 18, face = "bold"),
+    legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position = c(0,0.05))
+```
+
+## Older Voter Turnout 2020
+
+```{r echo = FALSE}
+plot_usmap(data = oldervoters2020, values = "Voter Turnout Rate 45-64", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(52,100)) +
+  labs(title = "Voter Turnout Rate (Ages 45-64) by State in 2020") +
+  theme(plot.title = element_text(size = 18, face = "bold"), legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position = c(0,0.05))
+```
+
+```{r}
+mergedoldervoters <- merge(oldervoters2016, oldervoters2020, by = "state") |>
+  mutate("Change in Voter Turnout Rate (45-64)" = `Voter Turnout Rate 45-64` - `Voter Turnout Rate 2016 (45-64)`)
+
+top10changeinoldervoter <- mergedoldervoters |>
+  select(state,"Change in Voter Turnout Rate (45-64)") |>
+  arrange(desc(`Change in Voter Turnout Rate (45-64)`)) |>
+  head(10) |>
+  rename("State" = state)
+```
+
+## Top 10 States With Highest Increase in Voter Turnout Rates 2016-2020
+
+```{r}
+tt(top10changeinoldervoter) |>
+  style_tt(fontsize = 0.72)
+```
+
+```{r}
+trustinsocialmedia <- read.csv("trustinsocialmediabyage.csv") |>
+  rename("Trust Level" = Trust.Level)
+```
+
+## Trust in Social Media
+
+```{r echo = FALSE}
+ggplot(trustinsocialmedia, aes(Age, Percent, fill = `Trust Level`)) +
+  geom_col(width=0.7, position = position_stack(reverse = TRUE)) +
+  geom_text(aes(label=percent (Percent, 1)),
+            position = position_stack(vjust = 0.5, reverse = TRUE),
+            color = "white", size = 5) +
+  coord_flip() +
+  scale_y_continuous(labels=percent) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Trust in Social Media to Report Accurate Election Information by Age Group",
+    y = "Share of respondents") +
+  theme(
+    plot.title = element_text(size=15, face="bold", hjust = 0.5),
+    panel.grid.major.x = element_line(color="grey80", linetype = "dotted"),
+    panel.grid.major.y = element_blank(),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size=14),
+    legend.key.size = unit(1.2, "lines"),
+    legend.spacing.x = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.box.just = "left",
+    axis.title.y = element_text(size = 16, face = "bold"),
+    axis.text.y = element_text(size = 14)
+  )
+```
+
+```{r}
+geo_spend <- read.csv("google-political-ads-advertiser-geo-spend.csv") 
+
+statespending <- geo_spend |>
+  filter(Country == "US") |>
+  rename(state = Country_Subdivision_Primary) |>
+  group_by(state) |>
+  filter(state != "AS", state != "GU", state != "MP", state != "DC", state != "PR", state != "VI" ,state != "") |>
+  summarize(Total = sum(Spend_USD)/1000000)
+```
+
+```{r}
+statespendingpercapita <- geo_spend |>
+  filter(Country == "US") |>
+  rename(state = Country_Subdivision_Primary) |>
+  group_by(state) |>
+  filter(state != "AS", state != "GU", state != "MP", state != "DC", state != "PR", state != "VI" ,state != "") |>
+  select("state", "Spend_USD") |>
+  summarize(Total = sum(Spend_USD))
+```
+
+```{r}
+statepopulations <- read.csv("CENSUSpopulationdata.csv") |>
+  select("NAME", "POPESTIMATE2024") |>
+  rename(state = NAME) |>
+  filter(state != "United States", state != "Northeast Region", state != "New England", state != "Middle Atlantic", state != "Midwest Region", state != "East North Central", state != "West North Central", state != "South Region", state != "South Atlantic", state != "East South Central", state != "West South Central", state != "West Region", state != "Mountain", state != "Pacific", state != "Puerto Rico")
+
+statepopulations <- statepopulations |>
+  mutate(state = state.abb[match(state, state.name)])
+
+mergedspendingpercapita <- merge(statespendingpercapita, statepopulations, by = "state")
+
+mergedspendingpercapita <- mergedspendingpercapita |>
+  mutate('Spending Per Capita' = Total/POPESTIMATE2024)
+```
+
+## Political Ad Spending Per Capita
+
+```{r}
+plot_usmap(data = mergedspendingpercapita, values = "Spending Per Capita", regions = "states") +
+  scale_fill_continuous( low = "lightblue", high = "darkblue", name = "Spending Per Capita", limits = c(1,25)) +
+  theme(legend.position = "right", plot.title = element_text(size = 20, face = "bold")) +
+  labs(title = "Per Capita Political Ad Spending (Google) per State")
+```
+
+## Top 10 States With Highest Political Ad Spending (Per Capita) on Google
+
+```{r echo = FALSE}
+top10spendingstates <- mergedspendingpercapita |>
+  select(state, `Spending Per Capita`)|>
+  arrange(desc(`Spending Per Capita`)) |>
+  slice_head(n = 10) |>
+  rename(State = state)
+  
+tt(top10spendingstates) |>
+  style_tt(fontsize = 0.72)
+```
+
+```{r}
+mergedturnoutandspending <- merge(mergedspendingpercapita, oldervoters2020, by = "state") |>
+  select("state", "Spending Per Capita", "Voter Turnout Rate 45-64") |>
+  filter(state %in% c("MT", "WI", "NV", "NH", "PA", "AZ", "MI", "GA", "IA", "AK"))|>
+  rename(State = "state") |>
+  arrange(desc(`Spending Per Capita`))
+```
+
+## Voter Turnout Rates of these Top 10 Political Ad Spending States
+
+```{r}
+tt(mergedturnoutandspending) |>
+  style_tt(font = 0.72)
+```

@@ -1,13 +1,334 @@
 ---
-title: "Paper"
+title: "Final Stat 100 Paper"
 format: html
 editor: visual
 ---
 
-## Paper
+## How Political Media Exposure Influences Voter Turnout Across Age Groups in US Elections
 
 ```         
-In our modern political landscape, media and advertisements play a crucial role in shaping public opinion and influencing voting behavior. As digital platforms continue to progress, political messaging has been able to expand beyond typical media sources and has progressed into the social media feeds of millions of Americans. This project explores the impact of forms of political media, particularly digital advertisements and social media posts, on voting behavior and turnout. By analyzing the rise in political advertising and online political content surrounding major election dates, we aim to assess how these efforts appeal to different generations of voters and ultimately affect their engagement in the democratic process.
-
-To carry out this investigation, we plan to utilize publicly available datasets from Google, Facebook, and X, which provide detailed information on political ad spending and social media activity. We plan to compare political ad spending across states and analyze corresponding voter turnouts during the 2016 and 2020 presidential elections. We will also analyze the frequency and content of political social media posts in the weeks leading up to the election, with particular attention to the notable increase in activity as election day approaches. While our primary focus is on identifying trends in political media volume and timing, we also will consider how these patterns may relate to broader changes in voter behavior across generations – particularly among younger users who are more likely to engage with content on social media.
 ```
+
+In our modern political landscape, media and advertisements play a crucial role in shaping voters opinions and behavior. As digital platforms continue to progress, political messaging has been able to expand beyond typical media sources and has progressed into the social media feeds of millions of Americans. This project explores the impact of forms of political media, particularly digital advertisements and social media posts, on voting behavior and turnout. By analyzing the rise in political advertising spending and online political content surrounding major election dates, we aim to assess how these efforts appeal to different generations of voters and ultimately affect their engagement in the democratic process.
+
+To carry out this investigation, we plan to utilize publicly available datasets from the Census Bureau, Google, and X, which provide detailed information on voter turnout rates, political ad spending, and social media activity. By collecting and visualizing this data, we will be able to trace where voter turnout shifts are most pronounced and observe how they vary with age-targeted forms of politcal media and advertisements. While our primary focus is on identifying trends in political media volume and spending, we also will consider how these patterns may relate to broader changes in voter behavior across generations – particularly among younger users who are more likely to engage with content on social media.
+
+```{r}
+#| include: FALSE
+library(tidyverse)
+library(janitor)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(usmap)
+library(scales)
+library(tinytable)
+library(maps)
+library(gt)
+library(RColorBrewer)
+library(sf)
+```
+
+```{r}
+#| include: FALSE
+voterturnout2016 <- read.csv("voterturnout2016.csv") |>
+  group_by(state) |>
+  rename('Voter Turnout Rate 2016 (18-24)' = Share.of.Pop.Ages.18...24) |>
+  rename('Voter Turnout Rate 2016 (45-64)' = Share.of.Pop.Ages.45...64)
+
+youngvoters2016 <- voterturnout2016 |>
+  select('Voter Turnout Rate 2016 (18-24)') 
+
+youngvoters2016$`Voter Turnout Rate 2016 (18-24)` <- as.numeric(youngvoters2016$`Voter Turnout Rate 2016 (18-24)`)
+
+youngvoters2016$`Voter Turnout Rate 2016 (18-24)` <- youngvoters2016$`Voter Turnout Rate 2016 (18-24)` * 100
+
+oldervoters2016 <- voterturnout2016 |>
+  select('Voter Turnout Rate 2016 (45-64)')
+
+oldervoters2016$'Voter Turnout Rate 2016 (45-64)' <- as.numeric(oldervoters2016$'Voter Turnout Rate 2016 (45-64)')
+
+oldervoters2016$'Voter Turnout Rate 2016 (45-64)' <- oldervoters2016$'Voter Turnout Rate 2016 (45-64)' * 100
+```
+
+## Younger Voter Turnout 2016
+
+```{r}
+#| echo: FALSE
+plot_usmap(data = youngvoters2016, values = "Voter Turnout Rate 2016 (18-24)", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(20,100)) +
+  labs(title = "Voter Turnout Rate (Ages 18-24) by State in 2016") +
+  theme(plot.title = element_text(size = 18, face = "bold"),
+    legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position.inside = c(0,0.05))
+```
+
+We were specifically interested in how the voting behavior of younger generations were influenced over the years, so we utilized data from the CENSUS Bureau to create this choropleth that indicates state-wide voter turnout rates among younger voters (ages 18-24) for the 2016 presidential election. Compared to 2020, the map is generally lighter, meaning fewer young people voted that year. This was a common issue—young voters often have the lowest turnout of any age group. Some reasons for this include a lack of information, not feeling like their vote matters, or not being encouraged to vote. This map helps show how low turnout among young voters has been a challenge for a long time.
+
+```{r}
+#| include: FALSE
+voterturnout2020 <- read.csv("voter_turnout.csv") |>
+    group_by(State) |>
+  rename(state = State) |>
+  rename("Voter Turnout Rate 18-24" = Share.of.Pop..18...24) |>
+  rename("Voter Turnout Rate 45-64" = Share.of.Pop..45...64)
+
+youngvoters2020 <- voterturnout2020 |>
+  select(`Voter Turnout Rate 18-24`)
+
+youngvoters2020$`Voter Turnout Rate 18-24` <- as.numeric(youngvoters2020$`Voter Turnout Rate 18-24`)
+
+youngvoters2020$`Voter Turnout Rate 18-24` <- youngvoters2020$`Voter Turnout Rate 18-24` * 100
+
+oldervoters2020 <- voterturnout2020 |>
+  select('Voter Turnout Rate 45-64')
+
+oldervoters2020$'Voter Turnout Rate 45-64' <- as.numeric(oldervoters2020$'Voter Turnout Rate 45-64')
+
+oldervoters2020$'Voter Turnout Rate 45-64' <- oldervoters2020$'Voter Turnout Rate 45-64' * 100
+
+```
+
+## Younger Voter Turnout 2020
+
+```{r}
+#| echo: FALSE
+plot_usmap(data = youngvoters2020, values = "Voter Turnout Rate 18-24", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(20,100)) +
+  labs(title = "Voter Turnout Rate (Ages 18-24) by State in 2020") +
+  theme(plot.title = element_text(size = 18, face = "bold"), legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position.inside = c(0,0.05))
+```
+
+To notice differences in voter turnout over the years, we also looked at voter turnout rates for younger voters for the 2020 presidential election. This choropleth indicates how many young people, ages 18 to 24, voted in the 2020 election in each state. Darker-colored states such as Minnesota and Maryland showed higher youth turnout, while states with lighter colors had fewer young voters.
+
+```{r}
+#| include: FALSE
+mergedyoungervoters <- merge(youngvoters2016, youngvoters2020, by = "state") |>
+  mutate("Change in Voter Turnout Rate (18-24)" = `Voter Turnout Rate 18-24` - `Voter Turnout Rate 2016 (18-24)`)
+
+top10changeinyoungervoter <- mergedyoungervoters |>
+  select(state,"Change in Voter Turnout Rate (18-24)") |>
+  arrange(desc(`Change in Voter Turnout Rate (18-24)`)) |>
+  head(10) |>
+  rename("State" = state)
+```
+
+## Top 10 States With Highest Increase in Younger Voter Turnout Rates 2016-2020
+
+```{r}
+#| echo: FALSE
+tt(top10changeinyoungervoter) |>
+  style_tt(fontsize = 0.72)
+```
+
+This table shows the states where youth voter turnout (ages 18 to 24) grew the most from 2016 to 2020. New Jersey had the biggest increase at over 34%, with other big jumps in Iowa, Hawaii, and Montana. We believe that social media potentially played a significant role in these dramatic increases, due to the large rise in social media platforms over the past 10 years, and the accelerating use of social media as a news outlet for younger generations.
+
+```{r}
+#| include: FALSE
+tweetvolume <- read.csv("tweet_volume_data_refined.csv")
+tweetvolume$date <- as.Date(tweetvolume$date)
+```
+
+## Data from X
+
+```{r}
+#| echo: FALSE
+ggplot(tweetvolume, aes(x = date, y = tweet_count)) +
+  geom_area(fill = "#B3CDE0", alpha = 0.4) +
+  geom_line(color = "005B96", linewidth = 1.5) +
+  geom_point(color = "#03396C", size = 2) +
+  scale_x_date(date_labels = waiver(), date_breaks = waiver()) +
+  scale_y_continuous(labels = comma) +
+  labs(
+      title = "Social Media Surge: Political Tweets Leading to the 2024 Election",
+      subtitle = "Poltical Tweet volume increases as election day approaches",
+      x = "Date",
+      y = "Number of Tweets",
+      caption = "Source: X"
+  ) +
+theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 13, color = "gray40"),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+This next graph was created using data from X, formerly known as twitter, to indicate the surge in political tweets leading up to the 2020 presidential election. As election day approached, more and more people were tweeting daily about politics, with a huge final spike right before the election. This helps to show how social media activity rises during important political events and becomes a big part of how people discuss and react to elections. It can also play a role in younger voter behavior, as millions of young users on twitter are exposed to election information everyday.
+
+## Older Voter Turnout 2016
+
+```{r}
+#| echo: FALSE
+plot_usmap(data = oldervoters2016, values = 'Voter Turnout Rate 2016 (45-64)', regions = "states", transform = FALSE) +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(52,100)) +
+  labs(title = "Voter Turnout Rate (Ages 45-64) by State in 2016") +
+  theme(plot.title = element_text(size = 18, face = "bold"),
+    legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position.inside = c(0,0.05))
+```
+
+To compare younger voting behavior to an older generation, we looked at the state-wide voter turnout rates of adults aged 45-64 from the 2016 presidential election, again using data from the CENSUS Bureau. The map features noticeably darker shading for the states than the map showing younger voter rates in 2016, which means that this age group had high turnout in most places. This isn’t surprising—older voters usually participate in elections more than younger people. These voters are often seen as reliable and important by campaigns, so they’re targeted with more ads and information. Comparing this to youth turnout helps us understand why older voters have such a strong influence on elections.
+
+## Older Voter Turnout 2020
+
+```{r}
+#| echo: FALSE
+plot_usmap(data = oldervoters2020, values = "Voter Turnout Rate 45-64", regions = "states") +
+  scale_fill_gradient(low = "lightyellow", high = "darkred", name = "Turnout Rate", na.value = "gray90", limits = c(52,100)) +
+  labs(title = "Voter Turnout Rate (Ages 45-64) by State in 2020") +
+  theme(plot.title = element_text(size = 18, face = "bold"), legend.background = element_rect(fill = "transparent", color = NA),
+      legend.position.inside = c(0,0.05))
+```
+
+To visualize any changes in voter turnout rates over the years, we made another map for older voter turnout rates from the 2020 Presidential election. The map is visibly darker than the one in 2016, indicating higher voter turnout rates across the country for the 2020 election.
+
+```{r}
+#| include: FALSE
+mergedoldervoters <- merge(oldervoters2016, oldervoters2020, by = "state") |>
+  mutate("Change in Voter Turnout Rate (45-64)" = `Voter Turnout Rate 45-64` - `Voter Turnout Rate 2016 (45-64)`)
+
+top10changeinoldervoter <- mergedoldervoters |>
+  select(state,"Change in Voter Turnout Rate (45-64)") |>
+  arrange(desc(`Change in Voter Turnout Rate (45-64)`)) |>
+  head(10) |>
+  rename("State" = state)
+```
+
+## Top 10 States With Highest Increase in Older Voter Turnout Rates 2016-2020
+
+```{r}
+#| echo: FALSE
+tt(top10changeinoldervoter) |>
+  style_tt(fontsize = 0.72)
+```
+
+This table lists the ten states where the number of middle-aged voters (ages 45 to 64) increased the most from 2016 to 2020. Hawaii had the biggest jump, followed by New Jersey and Kentucky. This means a lot more people in this age group came out to vote in these places during the 2020 election compared to 2016. However, the increases in voter turnout were noticeably lower than those among younger age groups over this time frame.
+
+```{r}
+#| include: FALSE
+trustinsocialmedia <- read.csv("trustinsocialmediabyage.csv") |>
+  rename("Trust Level" = Trust.Level)
+```
+
+## Trust in Social Media
+
+```{r}
+#| echo: FALSE
+ggplot(trustinsocialmedia, aes(Age, Percent, fill = `Trust Level`)) +
+  geom_col(width=0.7, position = position_stack(reverse = TRUE)) +
+  geom_text(aes(label=percent (Percent, 1)),
+            position = position_stack(vjust = 0.5, reverse = TRUE),
+            color = "white", size = 5) +
+  coord_flip() +
+  scale_y_continuous(labels=percent) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Trust in Social Media to Report Accurate Election Information by Age Group",
+    y = "Share of respondents") +
+  theme(
+    plot.title = element_text(size=15, face="bold", hjust = 0.5),
+    panel.grid.major.x = element_line(color="grey80", linetype = "dotted"),
+    panel.grid.major.y = element_blank(),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size=14),
+    legend.key.size = unit(1.2, "lines"),
+    legend.spacing.x = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.box.just = "left",
+    axis.title.y = element_text(size = 16, face = "bold"),
+    axis.text.y = element_text(size = 14)
+  )
+```
+
+Data from a poll conducted by The Economist in 2023 reveals a clear generational divide in trust towards social media as a source for election information, with 56% of 18–29 year-olds reporting a “fair amount” (44%) or “a great deal” (12%) of trust, compared to just 41% among 45–64 year-olds (33% for “a fair amount” and 8% for “a great deal”. Due to the fact that younger voters are more likely to believe what they see on social media, they’re also more likely to see campaign posts, ads, and political discussions that encourage them to vote. Older adults, who report higher levels of skepticism, are less likely to be influenced by this form of social media outreach and more likely to use more traditional forms of news. This difference in trust levels helps explain why recent increases in voter turnout have been stronger among younger age groups.
+
+```{r}
+#| include: FALSE
+geo_spend <- read.csv("google-political-ads-advertiser-geo-spend.csv") 
+
+statespending <- geo_spend |>
+  filter(Country == "US") |>
+  rename(state = Country_Subdivision_Primary) |>
+  group_by(state) |>
+  filter(state != "AS", state != "GU", state != "MP", state != "DC", state != "PR", state != "VI" ,state != "") |>
+  summarize(Total = sum(Spend_USD)/1000000)
+```
+
+```{r}
+#| include: FALSE
+statespendingpercapita <- geo_spend |>
+  filter(Country == "US") |>
+  rename(state = Country_Subdivision_Primary) |>
+  group_by(state) |>
+  filter(state != "AS", state != "GU", state != "MP", state != "DC", state != "PR", state != "VI" ,state != "") |>
+  select("state", "Spend_USD") |>
+  summarize(Total = sum(Spend_USD))
+```
+
+```{r}
+#| include: FALSE
+statepopulations <- read.csv("CENSUSpopulationdata.csv") |>
+  select("NAME", "POPESTIMATE2024") |>
+  rename(state = NAME) |>
+  filter(state != "United States", state != "Northeast Region", state != "New England", state != "Middle Atlantic", state != "Midwest Region", state != "East North Central", state != "West North Central", state != "South Region", state != "South Atlantic", state != "East South Central", state != "West South Central", state != "West Region", state != "Mountain", state != "Pacific", state != "Puerto Rico")
+
+statepopulations <- statepopulations |>
+  mutate(state = state.abb[match(state, state.name)])
+
+mergedspendingpercapita <- merge(statespendingpercapita, statepopulations, by = "state")
+
+mergedspendingpercapita <- mergedspendingpercapita |>
+  mutate('Spending Per Capita' = Total/POPESTIMATE2024)
+```
+
+## Political Ad Spending Per Capita
+
+```{r}
+#| echo: FALSE
+plot_usmap(data = mergedspendingpercapita, values = "Spending Per Capita", regions = "states") +
+  scale_fill_continuous( low = "lightblue", high = "darkblue", name = "Spending Per Capita", limits = c(1,25)) +
+  theme(legend.position = "right", plot.title = element_text(size = 20, face = "bold")) +
+  labs(title = "Per Capita Political Ad Spending (Google) per State")
+```
+
+To observe another form of political media that could influence voter rates, we looked at political ad spending per state from data from Google, and then calculated per capita spending per state by dividing spending numbers per state by their respective state population given from data from the Census Bureau. We did this to provide a more informative idea of political ad spending by adjusting for differing state populations. The darker states indicate higher per-capita political advertisement spending. We can see that states like Montana, Wisconsin, and Nevada had the highest spending. This doesn’t necessarily mean more people live there, but that campaigns spent more money trying to reach each individual. These states are often seen as especially important or competitive during the election, meaning the results could go either way. This map helps us understand where political campaigns focused their advertising and tried hardest to win votes.
+
+## Top 10 States With Highest Political Ad Spending (Per Capita) on Google
+
+```{r}
+#| echo: FALSE
+top10spendingstates <- mergedspendingpercapita |>
+  select(state, `Spending Per Capita`)|>
+  arrange(desc(`Spending Per Capita`)) |>
+  slice_head(n = 10) |>
+  rename(State = state)
+  
+tt(top10spendingstates) |>
+  style_tt(fontsize = 0.72)
+```
+
+This chart lists the ten states where the most money was spent on Google political ads for each person living there. Montana is at the top with nearly \$25 spent per person. Other high-spending states include Wisconsin, Nevada, and New Hampshire. These states often have close elections, so campaigns spend more money trying to influence voters there. Even though some of these states aren’t very large, they can still play a big role in deciding the final outcome. This shows that campaigns focus their money where it could make the biggest difference, not just in the biggest states.
+
+```{r}
+#| include: FALSE
+mergedturnoutandspending <- merge(mergedspendingpercapita, oldervoters2020, by = "state") |>
+  select("state", "Spending Per Capita", "Voter Turnout Rate 45-64") |>
+  filter(state %in% c("MT", "WI", "NV", "NH", "PA", "AZ", "MI", "GA", "IA", "AK"))|>
+  rename(State = "state") |>
+  arrange(desc(`Spending Per Capita`))
+```
+
+## Voter Turnout Rates of these Top 10 Political Ad Spending States
+
+```{r}
+#| echo: FALSE
+tt(mergedturnoutandspending) |>
+  style_tt(font = 0.72)
+```
+
+We wanted to see if these high spending numbers correlated with higher voter turnout rates, so we compared these top 10 states with their respective voter turnout rates from 2020 for older voters ages 45-64; indicating that 9 out of the 10 of these states with high political ad spending also boast voter turnout rates above 70% for older generations; indicating a possible correlation between high political ad spending and high voter turnout rates These results allude to the fact that older voters remain responsive to traditional digital advertising channels, such as search-engine display ads on Google, in driving their turnout. In contrast, our previous analysis of social media trust demonstrated that social media platforms, such as Twitter, exerts a substantially greater influence on voter engagement among younger voters, with over 50% of 18–29 year-olds expressing at least a fair amount of trust in these sources. Overall, the data reveals a clear split in how different age groups are influenced by political media: younger voters are mainly driven by peer-shared and tailored content on social platforms, while older voters are more directly swayed by more traditional, paid advertisements.
